@@ -20,6 +20,8 @@ spec:
     metadata:
       labels:
         name: carts
+        app: carts
+        version: v1
     spec:
       containers:
       - name: carts
@@ -32,8 +34,8 @@ spec:
             cpu: 300m
             memory: 500Mi
           requests:
-            cpu: 100m
-            memory: 200Mi
+            cpu: 300m       # 100
+            memory: 500Mi   # 200
         ports:
         - containerPort: 80
         securityContext:
@@ -53,21 +55,21 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: carts
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: carts
+    app: carts
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: carts
@@ -83,15 +85,17 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: carts-db
+      name: carts-db  
   template:
     metadata:
       labels:
         name: carts-db
+        app: carts-db
+        version: v1
     spec:
       containers:
       - name: carts-db
-        image: mongo
+        image: mongo:4.2.22
         ports:
         - name: mongo
           containerPort: 27017
@@ -112,7 +116,7 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
@@ -120,11 +124,13 @@ metadata:
   name: carts-db
   labels:
     name: carts-db
+    app: carts-db
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 27017
+  - name: http-27017
+    port: 27017
     targetPort: 27017
   selector:
     name: carts-db
@@ -145,6 +151,8 @@ spec:
     metadata:
       labels:
         name: catalogue
+        app: catalogue
+        version: v1
     spec:
       containers:
       - name: catalogue
@@ -154,8 +162,8 @@ spec:
         - -port=80
         resources:
           limits:
-            cpu: 200m
-            memory: 200Mi
+            cpu: 100m     # 200
+            memory: 100Mi # 200
           requests:
             cpu: 100m
             memory: 100Mi
@@ -174,7 +182,7 @@ spec:
           httpGet:
             path: /health
             port: 80
-          initialDelaySeconds: 300
+          initialDelaySeconds: 300    #
           periodSeconds: 3
         readinessProbe:
           httpGet:
@@ -183,21 +191,21 @@ spec:
           initialDelaySeconds: 180
           periodSeconds: 3
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: catalogue
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: catalogue
+    app: catalogue
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: catalogue
@@ -218,6 +226,8 @@ spec:
     metadata:
       labels:
         name: catalogue-db
+        app: catalogue-db
+        version: v1
     spec:
       containers:
       - name: catalogue-db
@@ -231,7 +241,7 @@ spec:
         - name: mysql
           containerPort: 3306
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
@@ -239,11 +249,13 @@ metadata:
   name: catalogue-db
   labels:
     name: catalogue-db
+    app: catalogue-db
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 3306
+  - name: http-3306
+    port: 3306
     targetPort: 3306
   selector:
     name: catalogue-db
@@ -252,6 +264,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: front-end
+  labels:
+    name: front-end
+    app: front-end
   namespace: sock-shop
 spec:
   replicas: 1
@@ -262,6 +277,8 @@ spec:
     metadata:
       labels:
         name: front-end
+        app: front-end
+        version: v1
     spec:
       containers:
       - name: front-end
@@ -298,21 +315,21 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: front-end
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: front-end
+    app: front-end
   namespace: sock-shop
 spec:
   type: NodePort
   ports:
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 8079
     nodePort: 30001
   selector:
@@ -334,6 +351,8 @@ spec:
     metadata:
       labels:
         name: orders
+        app: orders
+        version: v1
     spec:
       containers:
       - name: orders
@@ -346,8 +365,8 @@ spec:
             cpu: 500m
             memory: 500Mi
           requests:
-            cpu: 100m
-            memory: 300Mi
+            cpu: 200m
+            memory: 500Mi
         ports:
         - containerPort: 80
         securityContext:
@@ -367,21 +386,21 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: orders
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: orders
+    app: orders
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: orders
@@ -402,10 +421,12 @@ spec:
     metadata:
       labels:
         name: orders-db
+        app: orders-db
+        version: v1
     spec:
       containers:
       - name: orders-db
-        image: mongo
+        image: mongo:4.2.22
         ports:
         - name: mongo
           containerPort: 27017
@@ -426,7 +447,7 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
@@ -434,11 +455,13 @@ metadata:
   name: orders-db
   labels:
     name: orders-db
+    app: orders-db
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 27017
+  - name: http-27017
+    port: 27017
     targetPort: 27017
   selector:
     name: orders-db
@@ -459,14 +482,16 @@ spec:
     metadata:
       labels:
         name: payment
+        app: payment
+        version: v1
     spec:
       containers:
       - name: payment
         image: weaveworksdemos/payment:0.4.3
         resources:
           limits:
-            cpu: 200m
-            memory: 200Mi
+            cpu: 100m
+            memory: 100Mi
           requests:
             cpu: 99m
             memory: 100Mi
@@ -494,21 +519,21 @@ spec:
           initialDelaySeconds: 180
           periodSeconds: 3
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: payment
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: payment
+    app: payment
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: payment
@@ -529,6 +554,8 @@ spec:
     metadata:
       labels:
         name: queue-master
+        app: queue-master
+        version: v1
     spec:
       containers:
       - name: queue-master
@@ -541,26 +568,28 @@ spec:
             cpu: 300m
             memory: 500Mi
           requests:
-            cpu: 100m
-            memory: 300Mi
+            cpu: 300m
+            memory: 500Mi
         ports:
         - containerPort: 80
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: queue-master
   annotations:
-        prometheus.io/scrape: 'true'
+    prometheus.io/path: "/prometheus"
   labels:
     name: queue-master
+    app: queue-master
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: queue-master
@@ -581,6 +610,8 @@ spec:
     metadata:
       labels:
         name: rabbitmq
+        app: rabbitmq
+        version: v1
       annotations:
         prometheus.io/scrape: "false"
     spec:
@@ -608,27 +639,25 @@ spec:
         - containerPort: 9090
           name: exporter
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: rabbitmq
-  annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '9090'
   labels:
     name: rabbitmq
+    app: rabbitmq 
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 5672
-    name: rabbitmq
+  - name: http-5672         #rabbitmq
+    port: 5672
     targetPort: 5672
-  - port: 9090
-    name: exporter
-    targetPort: exporter
+  - name: http-9090
+    port: 9090             #exporter
+    targetPort: 9090
     protocol: TCP
   selector:
     name: rabbitmq
@@ -649,6 +678,8 @@ spec:
     metadata:
       labels:
         name: session-db
+        app: session-db
+        version: v1
       annotations:
         prometheus.io.scrape: "false"
     spec:
@@ -668,7 +699,7 @@ spec:
               - SETUID
           readOnlyRootFilesystem: true
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
@@ -676,11 +707,13 @@ metadata:
   name: session-db
   labels:
     name: session-db
+    app: session-db
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 6379
+  - name: http-6379
+    port: 6379
     targetPort: 6379
   selector:
     name: session-db
@@ -701,13 +734,15 @@ spec:
     metadata:
       labels:
         name: shipping
+        app: shipping
+        version: v1
     spec:
       containers:
       - name: shipping
         image: weaveworksdemos/shipping:0.4.8
         env:
          - name: ZIPKIN
-           value: zipkin.jaeger.svc.cluster.local
+           value: zipkin.istio-system.svc.cluster.local
          - name: JAVA_OPTS
            value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
         resources:
@@ -715,8 +750,8 @@ spec:
             cpu: 300m
             memory: 500Mi
           requests:
-            cpu: 100m
-            memory: 300Mi
+            cpu: 300m
+            memory: 500Mi
         ports:
         - containerPort: 80
         securityContext:
@@ -736,25 +771,24 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: shipping
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: shipping
+    app: shipping
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: shipping
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -772,6 +806,8 @@ spec:
     metadata:
       labels:
         name: user
+        app: user
+        version: v1
     spec:
       containers:
       - name: user
@@ -779,7 +815,7 @@ spec:
         resources:
           limits:
             cpu: 300m
-            memory: 200Mi
+            memory: 100Mi
           requests:
             cpu: 100m
             memory: 100Mi
@@ -810,25 +846,24 @@ spec:
           initialDelaySeconds: 180
           periodSeconds: 3
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: user
-  annotations:
-        prometheus.io/scrape: 'true'
   labels:
     name: user
+    app: user
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
+  - name: http-80
+    port: 80
     targetPort: 80
   selector:
     name: user
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -846,6 +881,8 @@ spec:
     metadata:
       labels:
         name: user-db
+        app: user-db
+        version: v1
     spec:
       containers:
       - name: user-db
@@ -871,7 +908,7 @@ spec:
           emptyDir:
             medium: Memory
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
 ---
 apiVersion: v1
 kind: Service
@@ -879,12 +916,13 @@ metadata:
   name: user-db
   labels:
     name: user-db
+    app: user-db
   namespace: sock-shop
 spec:
   ports:
     # the port that this service should serve on
-  - port: 27017
+  - name: http-27017
+    port: 27017
     targetPort: 27017
   selector:
     name: user-db
-

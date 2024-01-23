@@ -6,7 +6,7 @@ metadata:
   annotations:
         prometheus.io/scrape: 'true'
   labels:
-    name: carts
+    name: carts 
   namespace: sock-shop
 spec:
   ports:
